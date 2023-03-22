@@ -65,6 +65,15 @@ async function getGiphy(q) {
     return data.data.images.original.url;
 }
 
+function displayWeather(data) {
+    weather.textContent = '';
+    const div = document.createElement('div');
+    div.textContent = `Current weather for ${data.city}, ${data.country}: ${data.main.toLowerCase()} with a temperature of ${data.temp}°C (Feels like ${data.feels}°C) with ${data.humidity}% humidity and ${data.wind} km/h winds from ${data.dir}.`
+    const img = document.createElement('img');
+    img.src = data.desc;
+    weather.append(div, img);
+}
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     let data = await getWeatherData(loc.value);
