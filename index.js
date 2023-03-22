@@ -1,8 +1,38 @@
 const __WEATHER_API_KEY = '2b2036749d1e91eb2b35d7e9077e8ccb';
+const __GIPHY_API_KEY = 'Avw3U47KX0qnq9DFSAKuRJbzKfpPgYcu';
 
 const weather = document.querySelector('.weather');
 const form = document.querySelector('#weather-form');
 const loc = document.querySelector('#weather-location');
+
+function kelvinToCelcius(k) {
+    return Math.round((k - 273.15) * 10) / 10;
+}
+
+function MPSToKMH(mps) {
+    return Math.round(mps * 3.6 * 10) / 10;
+}
+
+function GeoDegToCard(deg) {
+    deg %= 360;
+    if (deg > 326.25 || deg < 11.25) {
+        return 'N';
+    } else if (deg < 56.25) {
+        return 'NE';
+    } else if (deg < 101.25) {
+        return 'E';
+    } else if (deg < 146.25) {
+        return 'SE';
+    } else if (deg < 191.25) {
+        return 'S';
+    } else if (deg < 236.25) {
+        return 'SE';
+    } else if (deg < 281.25) {
+        return 'W';
+    } else {
+        return 'NW';
+    }
+}
 
 async function getWeatherData(loc) {
     const resource = await fetch(
@@ -14,27 +44,30 @@ async function getWeatherData(loc) {
     const data = await resource.json();
     const weatherData = {
         main: data.weather[0].main,
-        desc: data.weather[0].description,
-        temp: data.main.temp, // kelvin
-        feels: data.main.feels_like, // kelvin
-        min: data.main.temp_min, // kelvin
-        max: data.main.temp_max, // kelvin
+        desc: await getGiphy(data.weather[0].description),
+        temp: kelvinToCelcius(data.main.temp),
+        feels: kelvinToCelcius(data.main.feels_like),
         humidity: data.main.humidity,
-        wind: data.wind.speed, // meters per second
-        dir: data.wind.deg, // http://snowfence.umn.edu/Components/winddirectionanddegrees.htm
-        clouds: data.clouds.all,
+        wind: MPSToKMH(data.wind.speed),
+        dir: GeoDegToCard(data.wind.deg),
         country: data.sys.country,
         city: data.name,
     };
     return weatherData;
 }
 
-function displayWeather(data) {
-
+async function getGiphy(q) {
+    const obj = await fetch(
+        `https://api.giphy.com/v1/gifs/translate?api_key=${__GIPHY_API_KEY}&s=${q}`,
+        { mode: 'cors' }
+    );
+    const data = await obj.json();
+    return data.data.images.original.url;
 }
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    let data = await getWeatherData(location.value);
+    let data = await getWeatherData(loc.value);
+    loc.value = '';
     displayWeather(data);
 });
